@@ -1,0 +1,14 @@
+{
+  "name": "Bot-SyA",
+  "description": "WhatsApp Bot en la nube",
+  "repository": "https://github.com/mggons/test",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": [
+     "wabot",
+     "baileys",
+     "botwa",
+     "bot", 
+     "whatsapp", 
+     "whatsapp-bot"
+   ]
+}
