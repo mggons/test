@@ -1,261 +1,211 @@
-require('./config.js') 
-const { WAConnection: _WAConnection } = require('@adiwajshing/baileys')
-const cloudDBAdapter = require('./lib/cloudDBAdapter')
-const { generate } = require('qrcode-terminal')
-const syntaxerror = require('syntax-error')
-const simple = require('./lib/simple')
-//  const logs = require('./lib/logs')
-const { promisify } = require('util')
-const yargs = require('yargs/yargs')
-const Readline = require('readline')
-const cp = require('child_process')
-const _ = require('lodash')
-const path = require('path')
-const axios = require('axios')
+const {
+    WAConnection,
+    MessageType,
+    Presence,
+    Mimetype,
+    GroupSettingChange
+} = require('@adiwajshing/baileys')
 const fs = require('fs')
-var low
-try {
-  low = require('lowdb')
-} catch (e) {
-  low = require('./lib/lowdb')
-}
-const { Low, JSONFile } = low
+const { color } = require('./lib/color')
+const {_wait, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, start, success, author, close } = require('./lib/functions');
+const { Miminnya, SesionName, ownerNumber} = require('./setting.json')
+require('./SyA.js')
+const moment = require("moment-timezone")
+const welcome = require('./database/group.js')
+//const grup = JSON.parse(fs.readFileSync('./group/welcome.json'))
+nocache('./SyA.js', module => console.log(`${module} Cambios Realizados con exito`))
+var sd = require('silly-datetime');
+const { BADFLAGS } = require('dns');
+const { REPL_MODE_SLOPPY } = require('repl');
 
-const rl = Readline.createInterface(process.stdin, process.stdout)
-const WAConnection = simple.WAConnection(_WAConnection)
 
-
-global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({ ...query, ...(apikeyqueryname ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] } : {}) })) : '')
-global.timestamp = {
-  start: new Date
-}
-// global.LOGGER = logs()
-const PORT = process.env.PORT || 3000
-global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
-
-global.prefix = new RegExp('^[' + (opts['prefix'] || '‎xzXZ/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']')
-
-global.db = new Low(
-  /https?:\/\//.test(opts['db'] || '') ?
-    new cloudDBAdapter(opts['db']) :
-    new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`)
-)
-global.DATABASE = global.db // Backwards Compatibility
-
-global.conn = new WAConnection()
-
-axios.get("https://web.whatsapp.com/check-update?version=1&platform=web").then(versi => {
-const Json = versi.data;
-conn.version = [Number(Json.currentVersion.split(".")[0]), 
-Number(Json.currentVersion.split(".")[1]), 
-Number(Json.currentVersion.split(".")[2])];
-})
-
-let authFile = opts['session'] ? opts['session'] + '.json' : `session.data.json`
-if (fs.existsSync(authFile)) conn.loadAuthInfo(authFile)
-if (opts['trace']) conn.logger.level = 'trace'
-if (opts['debug']) conn.logger.level = 'debug'
-if (opts['big-qr']) conn.on('qr', qr => generate(qr, { small: false }))
-if (!opts['test']) setInterval(async () => {
-  await global.db.write()
-}, 60 * 1000) // Save every minute
-if (opts['server']) require('./server')(global.conn, PORT)
-
-conn.user = {
-  jid: '',
-  name: '',
-  phone: {}
-}
-if (opts['test']) {
-  conn.user = {
-    jid: '2219191@s.whatsapp.net',
-    name: 'test',
-    phone: {}
-  }
-  conn.prepareMessageMedia = (buffer, mediaType, options = {}) => {
-    return {
-      [mediaType]: {
-        url: '',
-        mediaKey: '',
-        mimetype: options.mimetype || '',
-        fileEncSha256: '',
-        fileSha256: '',
-        fileLength: buffer.length,
-        seconds: options.duration,
-        fileName: options.filename || 'file',
-        gifPlayback: options.mimetype == 'image/gif' || undefined,
-        caption: options.caption,
-        ptt: options.ptt
-      }
-    }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  conn.sendMessage = async (chatId, content, type, opts = {}) => {
-    let message = await conn.prepareMessageContent(content, type, opts)
-    let waMessage = await conn.prepareMessageFromContent(chatId, message, opts)
-    if (type == 'conversation') waMessage.key.id = require('crypto').randomBytes(16).toString('hex').toUpperCase()
-    conn.emit('chat-update', {
-      jid: conn.user.jid,
-      hasNewMessage: true,
-      count: 1,
-      messages: {
-        all() {
-          return [waMessage]
-        }
-      }
+const timeHours = moment.tz('America/Bogota').format('HH:mm:ss');
+hours = timeHours;
+
+var hoy = new Date();
+var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds();
+var fecha = hoy.getDate() + '-' + ( hoy.getMonth() + 1 ) + '-' + hoy.getFullYear();
+var fechaYHora = fecha + ' ' + hora;
+
+
+const _welkom = JSON.parse(fs.readFileSync('./database/group/welcome.json'))
+
+const time2 = moment().tz('America/Bogota').format('HH:mm:ss')
+          if(time2 < "23:59:00"){
+          var ucapanWaktu = 'Buenas Noches'
+}
+          if(time2 < "19:00:00"){
+          var ucapanWaktu = 'Buenas noches'
+}
+          if(time2 < "18:00:00"){
+          var ucapanWaktu = 'Buenas noches'
+}
+          if(time2 < "15:00:00"){
+          var ucapanWaktu = 'Buenas tardes'
+}
+          if(time2 < "11:00:00"){
+          var ucapanWaktu = 'Buenos días'
+}
+          if(time2 < "05:00:00"){
+          var ucapanWaktu = 'Buenas Noches'
+}
+
+const starts = async (client = new WAConnection()) => {
+    client.logger.level = 'warn'
+    client.version = [3, 3234, 9];
+    client.browserDescription = [ 'Soporte y Aportes', 'Edge', '99.0' ]
+	//console.log(banner.string)
+	client.on('qr', () => {
+		console.log(color('[','white'), color('!','red'), color(']','white'), color(' Escanea el codigo QR rapido!!!  '))
+	})
+
+	fs.existsSync('./codec.json') && client.loadAuthInfo('./codec.json')
+	client.on('connecting', () => {
+		start('2', 'Desconectado')
+	})
+	client.on('open', () => {
+		success('2','Servidor Conectado Con Exito')
+        console.log(color('','aqua'), color(`||================================================||`, "cyan"))
+        console.log(color(' ||> ','cyan'), color(`     El Sistema se encuentra Operativo     `, 'cyan'),color('<||','cyan'))
+        console.log(color('','aqua'), color(`||================================================||`, "cyan"))
+        client.sendMessage(`573144182071@s.whatsapp.net`, `Hola, el bot inicio con exito a las ${sd.format(new Date(), 'DD-MM-YYYY HH:mm:ss')}\n\nActivado por: ${Miminnya}\n*Numero* : ${ownerNumber}\n*Estado* : Online\n\nSi recibio este mensaje puede ignorarlo`, MessageType.extendedText)
+	})
+	await client.connect({timeoutMs: 60*1000})
+        fs.writeFileSync('./codec.json', JSON.stringify(client.base64EncodedAuthInfo(), null, '\t'))
+
+    client.on('chat-update', async (message) => {
+    require('./SyA.js')(client, message, _welkom)
     })
-  }
-  rl.on('line', line => conn.sendMessage('123@s.whatsapp.net', line.trim(), 'conversation'))
-} else {
-  rl.on('line', line => {
-    process.send(line.trim())
-  })
-  conn.connect().then(async () => {
-    if (global.db.data == null) await loadDatabase()
-    fs.writeFileSync(authFile, JSON.stringify(conn.base64EncodedAuthInfo(), null, '\t'))
-    global.timestamp.connect = new Date
-  })
-}
-process.on('uncaughtException', console.error)
-// let strQuot = /(["'])(?:(?=(\\?))\2.)*?\1/
 
-loadDatabase()
-async function loadDatabase() {
-  await global.db.read()
-  global.db.data = {
-    users: {},
-    chats: {},
-    stats: {},
-    msgs: {},
-    sticker: {},
-    settings: {},
-    ...(global.db.data || {})
-  }
-  global.db.chain = _.chain(global.db.data)
-}
 
-let isInit = true
-global.reloadHandler = function () {
-  let handler = require('./handler')
-  if (!isInit) {
-    conn.off('chat-update', conn.handler)
-    conn.off('message-delete', conn.onDelete)
-    conn.off('group-participants-update', conn.onParticipantsUpdate)
-    conn.off('CB:action,,call', conn.onCall)
-  }
-  conn.welcome = 'Hai, @user!\nSelamat datang di grup @subject\n\n@desc'
-  conn.bye = 'Selamat tinggal @user!'
-  conn.spromote = '@user sekarang admin!'
-  conn.sdemote = '@user sekarang bukan admin!'
-  conn.handler = handler.handler
-  conn.onDelete = handler.delete
-  conn.onParticipantsUpdate = handler.participantsUpdate
-  conn.onCall = handler.onCall
-  conn.on('chat-update', conn.handler)
-  conn.on('message-delete', conn.onDelete)
-  conn.on('group-participants-update', conn.onParticipantsUpdate)
-  conn.on('CB:action,,call', conn.onCall)
-  if (isInit) {
-    conn.on('error', conn.logger.error)
-    conn.on('close', () => {
-      setTimeout(async () => {
+
+    
+//================================================================================/
+//==============================    Bienvenida    ================================/
+//================================================================================/
+       client.on('group-participants-update', async (anu) => {
+        //if (!welkom.includes(anu.jid)) return
+        const isWelkom = _welkom.includes(anu.jid)
         try {
-          if (conn.state === 'close') {
-            if (fs.existsSync(authFile)) await conn.loadAuthInfo(authFile)
-            await conn.connect()
-            fs.writeFileSync(authFile, JSON.stringify(conn.base64EncodedAuthInfo(), null, '\t'))
-            global.timestamp.connect = new Date
-          }
+            const mdata = await client.groupMetadata(anu.jid)
+            console.log(anu)
+            if (anu.action == 'add') {
+                num = anu.participants[0]
+                try {
+                ppimg = await client.getProfilePicture(`${anu.participants[0].split('@')[0]}@c.us`)
+                } catch {
+                ppimg = 'https://i.ibb.co/ZzppcWM/bienvenida.jpg'
+                }
+                teks =  `╭────────••◈••───────╮\n`
+                teks += `║➣ *${mdata.subject}*\n`
+                teks += `║➣ *Bienvenid@ a:*\n`
+                teks += `║➣ *@${num.split('@')[0]}*\n`
+                teks += `║➣ *Recuerda registrarse*\n`
+                teks += `║➣ *Recuerda leer las reglas*\n`			
+                teks += `╰────────••◈••───────╯\n`
+                teks += `*Hola* @${num.split('@')[0]}\n*Debido a las nuevas politicas,*\n*te debemos aclarar que debes leerlas con atención.*`
+                teks += `\n\n*En caso de infringir nuestras politicas,no nos hacemos reponsables de tu expulsion*`
+                teks += `\n\n*Ten en cuenta que este es un grupo colaborativo y educativo*`
+                teks += `\n\n*Que pases bien y que tengas un buen comienzo en nuestra comunidad que es tu familia*`
+                let buff = await getBuffer(ppimg)
+                client.sendMessage(mdata.id,  buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
+                listMsg = {
+                    buttonText: 'Opciones del BOT',
+                    footerText: `\nSoporte y Aportes Oficial BOT v11.0`,
+                    description: `*Antes de comenzar debes leer las politicas del grupo* ${mdata.subject}`,
+                    sections: [
+                    {
+                    rows: [
+                    {
+                      "title": "Politicas de Grupo",
+                      "rowId": `${prefix}politicas`
+                      },
+                    {
+                      "title": "Menu",
+                      "rowId": `${prefix}menu`
+                    },
+                    {
+                      "title": "Creador",
+                      "rowId": `${prefix}owner`
+                    },
+                    {
+                      "title": "Estado del Bot",
+                      "rowId": `${prefix}status`
+                    }
+                    ]
+                    }],
+                    listType: 1
+                    }
+                await sleep(2500);
+                client.sendMessage(mdata.id, listMsg, MessageType.listMessage)
+            } else if (anu.action == 'remove') {
+                num = anu.participants[0]
+                try {
+                ppimg = await client.getProfilePicture(`${num.split('@')[0]}@c.us`)
+                } catch {
+                ppimg = 'https://cdn.memegenerator.es/imagenes/memes/full/31/24/31247292.jpg'
+                }
+                out =  `╭────────••◈••───────╮\n║➣ *${mdata.subject}*\n║➣ *Despidamos a:*\n║➣ *@${num.split('@')[0]}*\n║➣ *Por no aportacion*\n║➣ *y participacion🔪*\n╰────────••◈••───────╯\n`
+                footer = `*Soporte y Aportes Oficial V11*`
+                let buff = await getBuffer(ppimg)
+                client.sendMessage(mdata.id, buff, MessageType.image, {caption: out, contextInfo: {"mentionedJid": [num]}, footerText: footer})
+            }
+            if (anu.action == 'promote') {
+                num = anu.participants[0]
+                ppimg = 'https://pngimage.net/wp-content/uploads/2018/05/administrador-icono-png-5.png'
+                teks = `*Ahora tienes el cargo como: _Administrador_*\n\n*Felicidades @${num.split('@')[0]}*✔👨‍🔧\n`      
+                let buff = await getBuffer(ppimg)
+                client.sendMessage(mdata.id,  buff, MessageType.image, {caption: teks, footerText: `*Soporte y Aportes Oficial V11*`, contextInfo: {"mentionedJid": [num]}})
+            } else if (anu.action == 'demote') {
+                num = anu.participants[0]
+                ppimg = 'https://pngimage.net/wp-content/uploads/2018/05/administrador-icono-png-5.png'
+                teks = `*Ya no tienes el cargo como: _Administrador_ @${num.split('@')[0]}*\n\n*Para la Proxima*🚫👨‍🔧\n` 
+                footer = `*Soporte y Aportes Oficial V11*`
+                let buff = await getBuffer(ppimg)
+                client.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}, footerText: footer})
+            }
+
         } catch (e) {
-          conn.logger.error(e)
+            console.log('Error : %s', color(e, 'red'))
         }
-      }, 5000)
+    })}
+
+
+
+//================================================================================/
+//==============================  Administrador   ================================/
+//================================================================================/
+
+/**
+ * Uncache if there is file change
+ * @param {string} module Module name or path
+ * @param {function} cb <optional> 
+ */
+function nocache(module, cb = () => { }) {
+    console.log('Modulo', `'${module}'`, 'ahora está visualizando los cambios')
+    fs.watchFile(require.resolve(module), async () => {
+        await uncache(require.resolve(module))
+        cb(module)
     })
-  }
-  isInit = false
-  return true
 }
 
-// Plugin Loader
-let pluginFolder = path.join(__dirname, 'plugins')
-let pluginFilter = filename => /\.js$/.test(filename)
-global.plugins = {}
-for (let filename of fs.readdirSync(pluginFolder).filter(pluginFilter)) {
-  try {
-    global.plugins[filename] = require(path.join(pluginFolder, filename))
-  } catch (e) {
-    conn.logger.error(e)
-    delete global.plugins[filename]
-  }
-}
-console.log(Object.keys(global.plugins))
-global.reload = (_event, filename) => {
-  if (pluginFilter(filename)) {
-    let dir = path.join(pluginFolder, filename)
-    if (dir in require.cache) {
-      delete require.cache[dir]
-      if (fs.existsSync(dir)) conn.logger.info(`re - require plugin '${filename}'`)
-      else {
-        conn.logger.warn(`deleted plugin '${filename}'`)
-        return delete global.plugins[filename]
-      }
-    } else conn.logger.info(`requiring new plugin '${filename}'`)
-    let err = syntaxerror(fs.readFileSync(dir), filename)
-    if (err) conn.logger.error(`syntax error while loading '${filename}'\n${err}`)
-    else try {
-      global.plugins[filename] = require(dir)
-    } catch (e) {
-      conn.logger.error(e)
-    } finally {
-      global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)))
-    }
-  }
-}
-Object.freeze(global.reload)
-fs.watch(path.join(__dirname, 'plugins'), global.reload)
-global.reloadHandler()
-
-
-
-// Quick Test
-async function _quickTest() {
-  let test = await Promise.all([
-    cp.spawn('ffmpeg'),
-    cp.spawn('ffprobe'),
-    cp.spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-filter_complex', 'color', '-frames:v', '1', '-f', 'webp', '-']),
-    cp.spawn('convert'),
-    cp.spawn('magick'),
-    cp.spawn('gm'),
-  ].map(p => {
-    return Promise.race([
-      new Promise(resolve => {
-        p.on('close', code => {
-          resolve(code !== 127)
-        })
-      }),
-      new Promise(resolve => {
-        p.on('error', _ => resolve(false))
-      })
-    ])
-  }))
-  let [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm] = test
-  console.log(test)
-  let s = global.support = {
-    ffmpeg,
-    ffprobe,
-    ffmpegWebp,
-    convert,
-    magick,
-    gm
-  }
-  require('./lib/sticker').support = s
-  Object.freeze(global.support)
-
-  if (!s.ffmpeg) conn.logger.warn('Please install ffmpeg for sending videos (pkg install ffmpeg)')
-  if (s.ffmpeg && !s.ffmpegWebp) conn.logger.warn('Stickers may not animated without libwebp on ffmpeg (--enable-ibwebp while compiling ffmpeg)')
-  if (!s.convert && !s.magick && !s.gm) conn.logger.warn('Stickers may not work without imagemagick if libwebp on ffmpeg doesnt isntalled (pkg install imagemagick)')
+/**
+ * Uncache a module
+ * @param {string} module Module name or path
+ */
+function uncache(module = '.') {
+    return new Promise((resolve, reject) => {
+        try {
+            delete require.cache[require.resolve(module)]
+            resolve()
+        } catch (e) {
+            reject(e)
+        }
+    })
 }
 
-_quickTest()
-  .then(() => conn.logger.info('Quick Test Done'))
-  .catch(console.error)
+starts()
